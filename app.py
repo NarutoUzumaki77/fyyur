@@ -123,29 +123,35 @@ def index():
 
 @app.route('/venues')
 def venues():
-    # TODO: replace with real venues data.
-    #       num_shows should be aggregated based on number of upcoming shows per venue.
-    data = [{
-        "city": "San Francisco",
-        "state": "CA",
-        "venues": [{
-            "id": 1,
-            "name": "The Musical Hop",
-            "num_upcoming_shows": 0,
-        }, {
-            "id": 3,
-            "name": "Park Square Live Music & Coffee",
-            "num_upcoming_shows": 1,
-        }]
-    }, {
-        "city": "New York",
-        "state": "NY",
-        "venues": [{
-            "id": 2,
-            "name": "The Dueling Pianos Bar",
-            "num_upcoming_shows": 0,
-        }]
-    }]
+
+    state = ''
+    city = ''
+    data = []
+    _index = -1
+    venues = db.session.query(Venue).order_by(Venue.state, Venue.city).all()
+    utc_now = datetime.utcnow()
+    for venue in venues:
+        if venue.state != state and venue.city != city:
+            _index += 1
+            state = venue.state
+            city = venue.city
+            data.append({'city': city, 'state': state, 'venues': []})
+            shows = db.session.query(Show).filter(Show.venue_id == venue.id).all()
+            num_upcoming_shows = 0
+            for show in shows:
+                if show.date_time > utc_now:
+                    num_upcoming_shows += 1
+            data[_index]['venues'].append({'id': venue.id, 'name': venue.name, 'num_upcoming_shows': num_upcoming_shows})
+            db.session.close()
+        elif venue.state == state and venue.city == city:
+            shows = db.session.query(Show).filter(Show.venue_id == venue.id)
+            num_upcoming_shows = 0
+            for show in shows:
+                if show.date_time > utc_now:
+                    num_upcoming_shows += 1
+            data[_index]['venues'].append({'id': venue.id, 'name': venue.name, 'num_upcoming_shows': num_upcoming_shows})
+            db.session.close()
+
     return render_template('pages/venues.html', areas=data)
 
 
@@ -339,6 +345,7 @@ def search_artists():
 
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
+    # Todo right outer join to pick up just Artist if artist have no show
     artist_info = db.session.query(Show, Artist).join(Artist).filter(Artist.id == artist_id).all()
     data = {
         'id': artist_info[0].Artist.id,
