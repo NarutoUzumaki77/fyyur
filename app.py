@@ -157,17 +157,13 @@ def venues():
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
-    # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
-    # seach for Hop should return "The Musical Hop".
-    # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
-    response = {
-        "count": 1,
-        "data": [{
-            "id": 2,
-            "name": "The Dueling Pianos Bar",
-            "num_upcoming_shows": 0,
-        }]
-    }
+    response = {}
+    try:
+        _venues = db.session.query(Venue).filter(Venue.name.ilike('%{}%'.format(request.form.get('search_term', '')))).all()
+        response.update({'count': len(_venues)})
+        response.update({'data': _venues})
+    except Exception as err:
+        print(err)
     return render_template('pages/search_venues.html', results=response,
                            search_term=request.form.get('search_term', ''))
 
@@ -331,6 +327,7 @@ def artists():
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
+
     response = {}
     try:
         search_artist = db.session.query(Artist).filter(
@@ -345,50 +342,60 @@ def search_artists():
 
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
-    # Todo right outer join to pick up just Artist if artist have no show
+
     artist_info = db.session.query(Show, Artist).join(Artist).filter(Artist.id == artist_id).all()
+    if len(artist_info) <= 0:
+        artist_info = db.session.query(Artist).filter(Artist.id == artist_id).all()
+        artist = artist_info[0]
+    else:
+        artist = artist_info[0].Artist
     data = {
-        'id': artist_info[0].Artist.id,
-        "name": artist_info[0].Artist.name,
-        "genres": artist_info[0].Artist.genres,
-        "city": artist_info[0].Artist.city,
-        "state": artist_info[0].Artist.state,
-        "phone": artist_info[0].Artist.phone,
-        "website": artist_info[0].Artist.website,
-        "facebook_link": artist_info[0].Artist.facebook_link,
-        "seeking_venue": artist_info[0].Artist.seeking_venue,
-        "seeking_description": artist_info[0].Artist.seeking_description,
-        "image_link": artist_info[0].Artist.image_link
+        'id': artist.id,
+        "name": artist.name,
+        "genres": artist.genres,
+        "city": artist.city,
+        "state": artist.state,
+        "phone": artist.phone,
+        "website": artist.website,
+        "facebook_link": artist.facebook_link,
+        "seeking_venue": artist.seeking_venue,
+        "seeking_description": artist.seeking_description,
+        "image_link": artist.image_link,
+        'past_show': {},
+        'upcoming_show': {},
+        'past_shows_count': 0,
+        'upcoming_shows_count': 0
     }
-    past_show = []
-    upcoming_show = []
+    try:
+        past_show = []
+        upcoming_show = []
 
-    for show in artist_info:
-        now = datetime.utcnow()
-        show_time = show.Show.date_time
-        venue = Venue.query.get(show.Show.venue_id)
-        if show_time > now:
-            print('*******************' + str(venue.id))
-            upcoming_show.append({
-                'venue_id': venue.id,
-                'venue_name': venue.name,
-                'venue_image_link': venue.image_link,
-                "start_time": show.Show.date_time
-            })
-        else:
-            past_show.append({
-                'venue_id': venue.id,
-                'venue_name': venue.name,
-                'venue_image_link': venue.image_link,
-                "start_time": show.Show.date_time
-            })
+        for show in artist_info:
+            now = datetime.utcnow()
+            show_time = show.Show.date_time
+            venue = Venue.query.get(show.Show.venue_id)
+            if show_time > now:
+                upcoming_show.append({
+                    'venue_id': venue.id,
+                    'venue_name': venue.name,
+                    'venue_image_link': venue.image_link,
+                    "start_time": show.Show.date_time
+                })
+            else:
+                past_show.append({
+                    'venue_id': venue.id,
+                    'venue_name': venue.name,
+                    'venue_image_link': venue.image_link,
+                    "start_time": show.Show.date_time
+                })
 
-    print(past_show)
-    print(upcoming_show)
-    data.update({'past_show': past_show})
-    data.update({'upcoming_show': upcoming_show})
-    data.update({'past_shows_count': len(past_show)})
-    data.update({'upcoming_shows_count': len(upcoming_show)})
+        data.update({'past_show': past_show})
+        data.update({'upcoming_show': upcoming_show})
+        data.update({'past_shows_count': len(past_show)})
+        data.update({'upcoming_shows_count': len(upcoming_show)})
+    except:
+        # pass silently if artist has no record in the Show table
+        pass
 
     return render_template('pages/show_artist.html', artist=data)
 
