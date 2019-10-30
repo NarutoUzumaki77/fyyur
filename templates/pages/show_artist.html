@@ -46,7 +46,7 @@
 <section>
 	<h2 class="monospace">{{ artist.upcoming_shows_count }} Upcoming {% if artist.upcoming_shows_count == 1 %}Show{% else %}Shows{% endif %}</h2>
 	<div class="row">
-		{%for show in artist.upcoming_shows %}
+		{%for show in artist.upcoming_show %}
 		<div class="col-sm-4">
 			<div class="tile tile-show">
 				<img src="{{ show.venue_image_link }}" alt="Show Venue Image" />
@@ -60,7 +60,7 @@
 <section>
 	<h2 class="monospace">{{ artist.past_shows_count }} Past {% if artist.past_shows_count == 1 %}Show{% else %}Shows{% endif %}</h2>
 	<div class="row">
-		{%for show in artist.past_shows %}
+		{%for show in artist.past_show %}
 		<div class="col-sm-4">
 			<div class="tile tile-show">
 				<img src="{{ show.venue_image_link }}" alt="Show Venue Image" />

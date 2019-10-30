@@ -361,6 +361,7 @@ def show_artist(artist_id):
         show_time = show.Show.date_time
         venue = Venue.query.get(show.Show.venue_id)
         if show_time > now:
+            print('*******************' + str(venue.id))
             upcoming_show.append({
                 'venue_id': venue.id,
                 'venue_name': venue.name,
@@ -375,6 +376,8 @@ def show_artist(artist_id):
                 "start_time": show.Show.date_time
             })
 
+    print(past_show)
+    print(upcoming_show)
     data.update({'past_show': past_show})
     data.update({'upcoming_show': upcoming_show})
     data.update({'past_shows_count': len(past_show)})
