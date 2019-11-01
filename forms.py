@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, BooleanField, ValidationError
-from wtforms.validators import DataRequired, URL
+from wtforms.validators import DataRequired, URL, Length, InputRequired
 import phonenumbers
 
 
@@ -71,8 +71,8 @@ class VenueForm(FlaskForm):
         ]
     )
     address = StringField('address', validators=[DataRequired()])
-    phone = StringField('Phone')
-    image_link = StringField('image_link')
+    phone = StringField('Phone', validators=[InputRequired(), Length(max=16)])
+    image_link = StringField('image_link', validators=[URL()])
     genres = SelectMultipleField(
         'genres', validators=[DataRequired()],
         choices=[
@@ -101,19 +101,6 @@ class VenueForm(FlaskForm):
     website = StringField('website', validators=[URL()])
     seeking_talent = BooleanField('Seeking Talent')
     seeking_description = StringField('seeking_description')
-
-    def validate_phone(form, phone):
-        print("************ Validate Phone was called **************")
-        if len(phone.data) > 16:
-            raise ValidationError('Invalid phone number.')
-        try:
-            input_number = phonenumbers.parse(phone.data)
-            if not (phonenumbers.is_valid_number(input_number)):
-                raise ValidationError('Invalid phone number.')
-        except:
-            input_number = phonenumbers.parse("+1" + phone.data)
-            if not (phonenumbers.is_valid_number(input_number)):
-                raise ValidationError('Invalid phone number.')
 
 
 class ArtistForm(FlaskForm):
@@ -175,8 +162,8 @@ class ArtistForm(FlaskForm):
             ('WY', 'WY'),
         ]
     )
-    phone = StringField('phone', validators=[DataRequired()])
-    image_link = StringField('image_link', validators=[DataRequired()])
+    phone = StringField('Phone', validators=[InputRequired(), Length(max=16)])
+    image_link = StringField('image_link', validators=[DataRequired(), URL()])
     genres = SelectMultipleField(
         'genres', validators=[DataRequired()],
         choices=[
