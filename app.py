@@ -26,6 +26,7 @@ db = SQLAlchemy(app)
 
 migrate = Migrate(app, db)
 
+
 # ----------------------------------------------------------------------------#
 # Filters.
 # ----------------------------------------------------------------------------#
@@ -59,7 +60,6 @@ def index():
 
 @app.route('/venues')
 def venues():
-
     state = ''
     city = ''
     data = []
@@ -77,7 +77,8 @@ def venues():
             for show in shows:
                 if show.date_time > utc_now:
                     num_upcoming_shows += 1
-            data[_index]['venues'].append({'id': venue.id, 'name': venue.name, 'num_upcoming_shows': num_upcoming_shows})
+            data[_index]['venues'].append(
+                {'id': venue.id, 'name': venue.name, 'num_upcoming_shows': num_upcoming_shows})
             db.session.close()
         elif venue.state == state and venue.city == city:
             shows = db.session.query(Show).filter(Show.venue_id == venue.id)
@@ -85,7 +86,8 @@ def venues():
             for show in shows:
                 if show.date_time > utc_now:
                     num_upcoming_shows += 1
-            data[_index]['venues'].append({'id': venue.id, 'name': venue.name, 'num_upcoming_shows': num_upcoming_shows})
+            data[_index]['venues'].append(
+                {'id': venue.id, 'name': venue.name, 'num_upcoming_shows': num_upcoming_shows})
             db.session.close()
 
     return render_template('pages/venues.html', areas=data)
@@ -107,7 +109,6 @@ def search_venues():
 
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
-
     venue_info = db.session.query(Show, Venue).join(Venue).filter(Venue.id == venue_id).all()
     if len(venue_info) <= 0:
         venue_info = db.session.query(Venue).filter(Venue.id == venue_id).all()
@@ -229,6 +230,7 @@ def delete_venue(venue_id):
         db.session.close()
     return render_template('pages/home.html')
 
+
 #  ----------------------------------------------------------------
 #  Artists
 #  ----------------------------------------------------------------
@@ -245,7 +247,6 @@ def artists():
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
-
     response = {}
     try:
         search_artist = db.session.query(Artist).filter(
@@ -260,7 +261,6 @@ def search_artists():
 
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
-
     artist_info = db.session.query(Show, Artist).join(Artist).filter(Artist.id == artist_id).all()
     if len(artist_info) <= 0:
         artist_info = db.session.query(Artist).filter(Artist.id == artist_id).all()
@@ -316,6 +316,7 @@ def show_artist(artist_id):
         pass
 
     return render_template('pages/show_artist.html', artist=data)
+
 
 #  ----------------------------------------------------------------
 #  Update
@@ -400,9 +401,11 @@ def edit_venue_submission(venue_id):
         venue.seeking_description = form.seeking_description.data
         venue.facebook_link = form.facebook_link.data
 
+        db.session.commit()
         db.session.close()
 
     return redirect(url_for('show_venue', venue_id=venue_id))
+
 
 #  ----------------------------------------------------------------
 #  Create Artist
@@ -449,6 +452,7 @@ def create_artist_submission():
     finally:
         db.session.close()
     return render_template('pages/home.html')
+
 
 #  ----------------------------------------------------------------
 #  Shows
