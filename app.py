@@ -67,7 +67,7 @@ def venues():
     venues = db.session.query(Venue).order_by(Venue.state, Venue.city).all()
     utc_now = datetime.utcnow()
     for venue in venues:
-        if venue.state != state and venue.city != city:
+        if venue.state != state or venue.city != city:
             _index += 1
             state = venue.state
             city = venue.city
@@ -167,6 +167,7 @@ def show_venue(venue_id):
     return render_template('pages/show_venue.html', venue=data)
 
 
+#  ----------------------------------------------------------------
 #  Create Venue
 #  ----------------------------------------------------------------
 

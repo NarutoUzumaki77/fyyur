@@ -1,16 +1,17 @@
 from datetime import datetime
-from flask_wtf import Form
-from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, BooleanField
-from wtforms.validators import DataRequired, AnyOf, URL
+from flask_wtf import FlaskForm
+from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, BooleanField, ValidationError
+from wtforms.validators import DataRequired, URL
+import phonenumbers
 
 
-class ShowForm(Form):
+class ShowForm(FlaskForm):
     artist_id = StringField('artist_id')
     venue_id = StringField('venue_id')
     start_time = DateTimeField('start_time', validators=[DataRequired()], default=datetime.today())
 
 
-class VenueForm(Form):
+class VenueForm(FlaskForm):
     name = StringField('name', validators=[DataRequired()])
     city = StringField('city', validators=[DataRequired()])
     state = SelectField(
@@ -70,10 +71,9 @@ class VenueForm(Form):
         ]
     )
     address = StringField('address', validators=[DataRequired()])
-    phone = StringField('phone')
+    phone = StringField('Phone')
     image_link = StringField('image_link')
     genres = SelectMultipleField(
-        # TODO implement enum restriction
         'genres', validators=[DataRequired()],
         choices=[
             ('Alternative', 'Alternative'),
@@ -102,8 +102,21 @@ class VenueForm(Form):
     seeking_talent = BooleanField('Seeking Talent')
     seeking_description = StringField('seeking_description')
 
+    def validate_phone(form, phone):
+        print("************ Validate Phone was called **************")
+        if len(phone.data) > 16:
+            raise ValidationError('Invalid phone number.')
+        try:
+            input_number = phonenumbers.parse(phone.data)
+            if not (phonenumbers.is_valid_number(input_number)):
+                raise ValidationError('Invalid phone number.')
+        except:
+            input_number = phonenumbers.parse("+1" + phone.data)
+            if not (phonenumbers.is_valid_number(input_number)):
+                raise ValidationError('Invalid phone number.')
 
-class ArtistForm(Form):
+
+class ArtistForm(FlaskForm):
     name = StringField('name', validators=[DataRequired()])
     city = StringField('city', validators=[DataRequired()])
     state = SelectField(
@@ -165,7 +178,6 @@ class ArtistForm(Form):
     phone = StringField('phone', validators=[DataRequired()])
     image_link = StringField('image_link', validators=[DataRequired()])
     genres = SelectMultipleField(
-        # TODO implement enum restriction
         'genres', validators=[DataRequired()],
         choices=[
             ('Alternative', 'Alternative'),
@@ -190,11 +202,10 @@ class ArtistForm(Form):
         ]
     )
     facebook_link = StringField(
-        # TODO implement enum restriction
         'facebook_link', validators=[URL()]
     )
     website = StringField('website', validators=[URL()])
     seeking_venue = BooleanField('Seeking Venue')
     seeking_description = StringField('seeking_description')
 
-# TODO IMPLEMENT NEW ARTIST FORM AND NEW SHOW FORM
+
