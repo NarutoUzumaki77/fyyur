@@ -2,7 +2,6 @@ from datetime import datetime
 from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, BooleanField, ValidationError
 from wtforms.validators import DataRequired, URL, Length, InputRequired
-import phonenumbers
 
 
 class ShowForm(FlaskForm):
